@@ -27,13 +27,16 @@
   },
   "readmeFilename": "README.md",
   "devDependencies": {
+    "async-once": "^1.0.1",
     "chai": "^2.1.0",
     "cors": "^2.5.3",
     "docco": "^0.7.0",
     "es5-shim": "^4.5.9",
     "event-stream": "^3.2.2",
     "express": "^4.12.0",
-    "gulp": "^3.8.11",
+    "fs-readfile-promise": "^3.0.1",
+    "graceful-fs": "^4.2.2",
+    "gulp": "^4.0.2",
     "gulp-clean": "^0.3.1",
     "gulp-concat": "^2.5.2",
     "gulp-connect": "^2.2.0",
@@ -47,7 +50,7 @@
     "gulp-sourcemaps": "^2.2.0",
     "gulp-uglify": "^1.1.0",
     "gulp-watch": "^4.1.1",
-    "gulp-wrap": "^0.11.0",
+    "gulp-wrap": "^0.15.0",
     "handlebars": "^4.0.5",
     "http-server": "^0.8.0",
     "jshint-stylish": "^1.0.1",
@@ -62,7 +65,10 @@
     "phantomjs": "1.9.19",
     "run-sequence": "^1.2.2",
     "selenium-webdriver": "^2.45.0",
-    "sinon-chai": "2.8.0",
-    "swagger-client": "2.1.29"
+    "sinon": "^7.4.2",
+    "sinon-chai": "^3.3.0",
+    "swagger-client": "2.1.29",
+    "undertaker": "^1.2.1",
+    "vinyl-fs": "^3.0.3"
   }
 }

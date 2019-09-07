@@ -15,3 +15,7 @@ node_modules/*
 /nbproject/private/
 dist/specs/
 test/specs/local/
+
+1.4.*/
+*-lock.json
+yarn.lock

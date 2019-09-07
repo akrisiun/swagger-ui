@@ -18,6 +18,7 @@ var cssnano = require('gulp-cssnano');
 var pkg = require('./package.json');
 var sourcemaps = require('gulp-sourcemaps');
 
+var once = require('async-once');
 
 var banner = ['/**',
   ' * <%= pkg.name %> - <%= pkg.description %>',
@@ -41,6 +42,7 @@ gulp.task('clean', function() {
  * JShint all *.js files
  */
 gulp.task('lint', function () {
+  console.log('lint ##########');
   return gulp.src('./src/main/javascript/**/*.js')
     .pipe(jshint())
     .pipe(jshint.reporter('jshint-stylish'));
@@ -49,8 +51,8 @@ gulp.task('lint', function () {
 /**
  * Build a distribution
  */
-gulp.task('dist', ['clean', 'lint'], _dist);
 function _dist() {
+  console.log('_dist ##########', gulp);
   return es.merge(
     gulp.src([
         './node_modules/es5-shim/es5-shim.js',
@@ -76,12 +78,11 @@ function _dist() {
     .pipe(gulp.dest('./dist'))
     .pipe(connect.reload());
 }
-gulp.task('dev-dist', ['lint', 'dev-copy'], _dist);
 
 /**
  * Processes less files into CSS files
  */
-gulp.task('less', ['clean'], _less);
+gulp.task('less', gulp.series('clean', _less));
 function _less() {
   return gulp
     .src([
@@ -100,7 +101,7 @@ gulp.task('dev-less', _less);
 /**
  * Copy lib and html folders
  */
-gulp.task('copy', ['less'], _copy);
+gulp.task('copy', gulp.series(['less'], _copy));
 function _copy() {
   // copy JavaScript files inside lib folder
   gulp
@@ -122,7 +123,8 @@ function _copy() {
     .pipe(gulp.dest('./dist'))
     .on('error', log);
 }
-gulp.task('dev-copy', ['dev-less', 'copy-local-specs'], _copy);
+// ['dev-less', 'copy-local-specs'], _copy);
+gulp.task('dist', gulp.series('clean', 'lint', _dist)); // ['clean', 'lint'], 'd', _dist));
 
 gulp.task('copy-local-specs', function () {
   // copy the test specs
@@ -131,6 +133,10 @@ gulp.task('copy-local-specs', function () {
     .pipe(gulp.dest('./dist/specs'))
     .on('error', log);
 });
+
+gulp.task('dev-copy', gulp.series('dev-less', 'copy-local-specs', _copy));
+gulp.task('dev-dist', gulp.series('lint', 'dev-copy', _dist));
+// ['lint', 'dev-copy'], gulp.series('d', _dist));
 
 gulp.task('minify-css', function() {
     /** Minify all CSS within dist folder, runs after dist process*/
@@ -152,7 +158,7 @@ gulp.task('uglify-libs', function() {
 /**
  * Watch for changes and recompile
  */
-gulp.task('watch', ['copy-local-specs'], function() {
+gulp.task('watch', gulp.series('copy-local-specs', function() {
   return watch([
     './src/**/*.{js,less,handlebars}',
     './src/main/html/*.html',
@@ -161,14 +167,16 @@ gulp.task('watch', ['copy-local-specs'], function() {
     function() {
       gulp.start('dev-dist');
     });
-});
+}));
 
 /**
  * Live reload web server of `dist`
  */
 gulp.task('connect', function() {
+  console.log('connect ##########', gulp);
   connect.server({
     root: 'dist',
+	port: 8008,
     livereload: true
   });
 });
@@ -177,20 +185,36 @@ function log(error) {
   console.error(error.toString && error.toString());
 }
 
-gulp.task('handlebars', function () {
+// gulp.task('server', gulp.series('build', function(){
+gulp.task('handlebars', gulp.series('dist', function () {
     gulp
         .src(['./src/main/template/templates.js'])
         .pipe(wrap('/* jshint ignore:start */ \n {<%= contents %>} \n /* jshint ignore:end */'))
         .pipe(gulp.dest('./src/main/template/'))
         .on('error', log);
-});
+}));
+
+gulp.task('build', gulp.series('dist', function () {
+	console.log('build ##########', gulp);
+    gulp
+        .src(['./src/main/template/templates.js'])
+        .pipe(wrap('/* jshint ignore:start */ \n {<%= contents %>} \n /* jshint ignore:end */'))
+        .pipe(gulp.dest('./src/main/template/'))
+        .on('error', log);
+}));
 
 gulp.task('default', function(callback) {
-    runSequence(['dist', 'copy'],
-                ['uglify-libs', 'minify-css'],
+    // runSequence(['dist', 'copy'], ['uglify-libs', 'minify-css'],
+	gulp.series('dist', 'copy', 'uglify-libs', 'minify-css',
                 callback);
 });
-gulp.task('serve', ['connect', 'watch']);
-gulp.task('dev', ['default'], function () {
+
+gulp.task('serve', gulp.series('connect', 'watch', function() {
+	console.log('serve ##########', gulp);
+}));
+gulp.task('dev', gulp.series('default', function () {
+  console.log('dev ##########', gulp);
   gulp.start('serve');
-});
+}));
+
+// # .\node_modules\.bin\gulp build
